@@ -10,27 +10,31 @@ filename=$1
 servername="aznetworkuptime.com"
 remotepath="/var/www/html/uploads"
 uniquefolder=$(uuidgen | awk -F "-" '{print $5}')
-fullurl="https://${servername}/uploads/${uniquefolder}/${filename}"
-
 renamefile=$(echo ${filename} | tr '[:upper:]' '[:lower:]' | tr -d " " | sed 's/\\/-/g')
-mv -v ${filename} ${renamefile}
+fullurl="https://${servername}/uploads/${uniquefolder}/${renamefile}"
 
-echo "Creating: ${remotepath}${uniquefolder}"
+#Renaming File to Remove Spaces and Make
+mv -v "$filename" $renamefile
+
+
+# Create New Remote Dir
+echo "Creating: ${remotepath}/${uniquefolder}"
 ssh ${servername} "mkdir -v ${remotepath}/${uniquefolder}"
 if [ $? -eq 0 ];then
-        echo "Unique folder ${uniquefolder} created"
+        /Users/kyle.corupe/bin/growlnotify -a terminal -t "Success" -m "Unique folder ${uniquefolder} created"
 else
-        echo "Was unable to create unique folder for upload - quitting"
-	exit 1
+        /Users/kyle.corupe/bin/growlnotify -a terminal -t "Failed" -m "Was unable to create unique folder for upload - quitting"
+		exit 1
 fi
 
-scp ${renamefile} ${servername}:${remotepath}${uniquefolder}
+# Copying File to Server
+scp ${renamefile} ${servername}:${remotepath}/${uniquefolder}
 if [ $? -eq 0 ];then
 	echo "Your Image is available at ${fullurl}"
-	growlnotify -s -a terminal -t "Transfer Complete for: ${filename}" -m "${date}\nURL: ${fullurl}"
+	/Users/kyle.corupe/bin/growlnotify -a terminal -t "Transfer Complete for: ${filename}" -m "${date}\nURL: ${fullurl}"
 	exit 0
 else
 	echo "Transfer failed"
-	growlnotify -s -a terminal -t "Transfer failed for: ${filename}" -m "The file did not xfer successfully"
+	/Users/kyle.corupe/bin/growlnotify -a terminal -t "Transfer failed for: ${filename}" -m "The file did not xfer successfully"
 	exit 1
 fi
