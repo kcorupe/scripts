@@ -4,8 +4,7 @@
 require 'net/http'
 require "uri"
 require "json"
-
-Dir["./lib/*.rb"].each {|file| require file }
+require 'trollop'
 
 opts = Trollop::options do
   version "manage_dns.rb 1.0"
